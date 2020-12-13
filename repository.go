@@ -1,3 +1,4 @@
+// # Copyright 2020 Jon Engelsman
 // # Copyright 2020 Google LLC
 // #
 // # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,8 +12,6 @@
 // # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // # See the License for the specific language governing permissions and
 // # limitations under the License.
-
-//todo: LoadRepository() :: change input from owner/name to url and then parse
 
 package criticalityscore
 
