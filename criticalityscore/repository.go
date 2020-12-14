@@ -51,7 +51,7 @@ type GitHubRepository struct {
 func LoadRepository(repoURL, token string) (GitHubRepository, error) {
 
 	if repoURL == "" {
-		fmt.Println(ErrRepoNotProvided.Error())
+		return GitHubRepository{}, ErrRepoNotProvided
 	}
 
 	ctx := context.Background()
@@ -114,10 +114,14 @@ func (ghr GitHubRepository) Contributors() int {
 		},
 	}
 
-	_, resp, err := ghr.client.Repositories.ListContributors(ghr.ctx, ghr.R.GetOwner().GetLogin(), ghr.R.GetName(), opts)
+	contributors, resp, err := ghr.client.Repositories.ListContributors(ghr.ctx, ghr.R.GetOwner().GetLogin(), ghr.R.GetName(), opts)
 	if err != nil {
 		ghr.Error = err
 		return 0
+	}
+
+	if resp.Header.Get("link") == "" {
+		return len(contributors)
 	}
 
 	return totalCount(resp)
@@ -268,10 +272,14 @@ func (ghr GitHubRepository) UpdatedIssues() int {
 		},
 	}
 
-	_, resp, err := ghr.client.Issues.ListByRepo(ghr.ctx, ghr.R.GetOwner().GetLogin(), ghr.R.GetName(), opts)
+	issues, resp, err := ghr.client.Issues.ListByRepo(ghr.ctx, ghr.R.GetOwner().GetLogin(), ghr.R.GetName(), opts)
 	if err != nil {
 		ghr.Error = err
 		return 0
+	}
+
+	if resp.Header.Get("link") == "" {
+		return len(issues)
 	}
 
 	return totalCount(resp)
@@ -317,13 +325,18 @@ func (ghr GitHubRepository) CommentFrequency(issueCount int) float64 {
 		},
 	}
 
-	_, resp, err := ghr.client.Issues.ListComments(ghr.ctx, ghr.R.GetOwner().GetLogin(), ghr.R.GetName(), 0, opts)
+	comments, resp, err := ghr.client.Issues.ListComments(ghr.ctx, ghr.R.GetOwner().GetLogin(), ghr.R.GetName(), 0, opts)
 	if err != nil {
 		ghr.Error = err
 		return 0
 	}
 
-	commentCount := totalCount(resp)
+	var commentCount int
+	if resp.Header.Get("link") == "" {
+		commentCount = len(comments)
+	} else {
+		commentCount = totalCount(resp)
+	}
 
 	return math.Round(float64(commentCount)/float64(issueCount)*10) / 10
 }
