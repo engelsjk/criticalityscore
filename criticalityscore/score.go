@@ -18,10 +18,20 @@
 package criticalityscore
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math"
+	"os"
+	"reflect"
+	"strconv"
 	"sync"
+)
+
+var (
+	ErrUnknownOutputFormat error = fmt.Errorf("unknown output format")
+	ErrInvalidParamFormat  error = fmt.Errorf("invalid param format")
 )
 
 type Score struct {
@@ -58,7 +68,12 @@ type AdditionalParam struct {
 	MaxThreshold float64
 }
 
-func RepositoryStats(ghr GitHubRepository, additionalParams []AdditionalParam) (Score, error) {
+func RepositoryStats(ghr GitHubRepository, params []string) (Score, error) {
+
+	additionalParams, err := parseAdditionalParams(params)
+	if err != nil {
+		return Score{}, fmt.Errorf("%s : %s", ErrInvalidParamFormat.Error(), err.Error())
+	}
 
 	additionalParamsTotalWeight := 0.0
 	additionalParamsScore := 0.0
@@ -151,10 +166,56 @@ func RepositoryStats(ghr GitHubRepository, additionalParams []AdditionalParam) (
 	return score, nil
 }
 
-func PrintScore(score Score) {
-	b, err := json.MarshalIndent(score, "", "\t")
-	if err != nil {
-		panic(err)
+// PrintScore outputs all score values in the specified format (default, json or csv)
+func PrintScore(score Score, format string) {
+
+	if format == "default" {
+		v := reflect.ValueOf(score)
+		typeOfScore := v.Type()
+		for i := 0; i < v.NumField(); i++ {
+			fmt.Printf("%s: %v\n", typeOfScore.Field(i).Name, v.Field(i).Interface())
+		}
+		return
 	}
-	fmt.Println(string(b))
+
+	if format == "csv" {
+		w := csv.NewWriter(os.Stdout)
+		v := reflect.ValueOf(score)
+		typeOfScore := v.Type()
+		for i := 0; i < v.NumField(); i++ {
+			c1 := typeOfScore.Field(i).Name
+			var c2 string
+			switch vv := v.Field(i).Interface().(type) {
+			case string:
+				c2 = vv
+			case int:
+				c2 = strconv.Itoa(vv)
+			case float64:
+				c2 = fmt.Sprintf("%0.1f", vv)
+				if c1 == "CriticalityScore" {
+					c2 = fmt.Sprintf("%0.5f", vv)
+				}
+			}
+			line := []string{c1, c2}
+			if err := w.Write(line); err != nil {
+				log.Println(err.Error())
+			}
+		}
+		w.Flush()
+		if err := w.Error(); err != nil {
+			log.Println(err.Error())
+		}
+		return
+	}
+
+	if format == "json" {
+		b, err := json.MarshalIndent(score, "", "\t")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(string(b))
+		return
+	}
+
+	fmt.Println(ErrUnknownOutputFormat.Error())
 }

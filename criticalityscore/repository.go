@@ -31,6 +31,7 @@ import (
 )
 
 var (
+	ErrRepoNotProvided                error = fmt.Errorf("please provided a repo url")
 	ErrInvalidGitHubURL               error = fmt.Errorf("invalid github url")
 	ErrRepoNotFound                   error = fmt.Errorf("repo not found")
 	ErrAPIResponseError               error = fmt.Errorf("github api response error, please try again")
@@ -48,6 +49,10 @@ type GitHubRepository struct {
 // LoadRepository returns a GitHubRepository object from a GitHub repository URL
 // and an authorized GitHUB personal access token.
 func LoadRepository(repoURL, token string) (GitHubRepository, error) {
+
+	if repoURL == "" {
+		fmt.Println(ErrRepoNotProvided.Error())
+	}
 
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(

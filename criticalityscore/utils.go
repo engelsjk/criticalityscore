@@ -17,6 +17,7 @@ package criticalityscore
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -72,6 +73,46 @@ func parseRepoURL(s string) (string, string) {
 	}
 
 	return p[1], p[2]
+}
+
+func parseAdditionalParams(params []string) ([]AdditionalParam, error) {
+	if len(params) == 0 {
+		return nil, nil
+	}
+	additionalParams := []AdditionalParam{}
+	for _, p := range params {
+		ps := strings.Split(p, ":")
+		if len(ps) != 3 {
+			return nil, fmt.Errorf("param string should have 3 values (value:weight:threshold)")
+		}
+
+		v, err := strconv.ParseFloat(ps[0], 64)
+		if err != nil {
+			return nil, fmt.Errorf("param value should be type float64")
+		}
+		w, err := strconv.ParseFloat(ps[1], 64)
+		if err != nil {
+			return nil, fmt.Errorf("param weight should be type float64")
+		}
+		mt, err := strconv.ParseFloat(ps[2], 64)
+		if err != nil {
+			return nil, fmt.Errorf("param max_threshold should be type float64")
+		}
+
+		param := AdditionalParam{
+			Value:        v,
+			Weight:       w,
+			MaxThreshold: mt,
+		}
+
+		additionalParams = append(additionalParams, param)
+	}
+
+	if len(additionalParams) == 0 {
+		return nil, nil
+	}
+
+	return additionalParams, nil
 }
 
 func parseLinkHeader(header http.Header) map[string]string {
