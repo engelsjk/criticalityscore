@@ -43,7 +43,7 @@ type Score struct {
 	ContributorCount    int     `json:"contributor_count"`
 	OrgCount            int     `json:"org_count"`
 	CommitFrequency     float64 `json:"commit_frequency"`
-	RecentReleasesCount int     `json:"recent_release_count"`
+	RecentReleasesCount int     `json:"recent_releases_count"`
 	ClosedIssuesCount   int     `json:"closed_issues_count"`
 	UpdatedIssuesCount  int     `json:"updated_issues_count"`
 	CommentFrequency    float64 `json:"comment_frequency"`
@@ -84,7 +84,7 @@ func RepositoryStats(ghr GitHubRepository, params []string) (Score, error) {
 	}
 
 	score := Score{
-		Name:     fmt.Sprintf("%s/%s", ghr.R.GetOwner().GetLogin(), ghr.R.GetName()),
+		Name:     ghr.R.GetName(),
 		URL:      ghr.R.GetHTMLURL(),
 		Language: ghr.R.GetLanguage(),
 	}
@@ -173,7 +173,7 @@ func PrintScore(score Score, format string) {
 		v := reflect.ValueOf(score)
 		typeOfScore := v.Type()
 		for i := 0; i < v.NumField(); i++ {
-			fmt.Printf("%s: %v\n", typeOfScore.Field(i).Name, v.Field(i).Interface())
+			fmt.Printf("%s: %v\n", typeOfScore.Field(i).Tag.Get("json"), v.Field(i).Interface())
 		}
 		return
 	}
@@ -183,7 +183,7 @@ func PrintScore(score Score, format string) {
 		v := reflect.ValueOf(score)
 		typeOfScore := v.Type()
 		for i := 0; i < v.NumField(); i++ {
-			c1 := typeOfScore.Field(i).Name
+			c1 := typeOfScore.Field(i).Tag.Get("json")
 			var c2 string
 			switch vv := v.Field(i).Interface().(type) {
 			case string:

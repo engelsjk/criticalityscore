@@ -49,9 +49,9 @@ const (
 
 	// Others.
 
-	TopContributorCount = 15
-	IssueLookbackDays   = 90
-	ReleaseLookbackDays = 365
+	TopContributorCount = 15.0
+	IssueLookbackDays   = 90.0
+	ReleaseLookbackDays = 365.0
 )
 
 var DependentsRegex *regexp.Regexp

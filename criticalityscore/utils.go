@@ -120,6 +120,9 @@ func parseLinkHeader(header http.Header) map[string]string {
 	linkHeaders := strings.Split(header.Get("link"), ", ")
 	for _, linkHeader := range linkHeaders {
 		lh := strings.Split(linkHeader, "; ")
+		if len(lh) < 2 {
+			continue
+		}
 		u := substr(lh[0], 1, -1)
 		r := substr(lh[1], 5, -1)
 		links[r] = u

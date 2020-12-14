@@ -159,8 +159,13 @@ func (ghr GitHubRepository) ContributorOrgs() map[string]bool {
 		return orgs
 	}
 
+	maxContributorCount := len(allContributors) - 1
+	if maxContributorCount > TopContributorCount {
+		maxContributorCount = TopContributorCount
+	}
+
 	var allUsers []*github.User
-	for _, contributor := range allContributors[:TopContributorCount] {
+	for _, contributor := range allContributors[:maxContributorCount] {
 		user, _, err := ghr.client.Users.GetByID(ghr.ctx, contributor.GetID())
 		if err != nil {
 			continue
@@ -284,10 +289,14 @@ func (ghr GitHubRepository) ClosedIssues() int {
 		},
 	}
 
-	_, resp, err := ghr.client.Issues.ListByRepo(ghr.ctx, ghr.R.GetOwner().GetLogin(), ghr.R.GetName(), opts)
+	issues, resp, err := ghr.client.Issues.ListByRepo(ghr.ctx, ghr.R.GetOwner().GetLogin(), ghr.R.GetName(), opts)
 	if err != nil {
 		ghr.Error = err
 		return 0
+	}
+
+	if resp.Header.Get("link") == "" {
+		return len(issues)
 	}
 
 	return totalCount(resp)
