@@ -24,13 +24,10 @@ func main() {
 		return
 	}
 
-	//
-
 	token := os.Getenv("GITHUB_AUTH_TOKEN")
 	if token == "" {
 		fmt.Println("warning: env variable GITHUB_AUTH_TOKEN not provided")
 	}
-	//
 
 	repo, err := criticalityscore.LoadRepository(*repoURL, token)
 	if err != nil {
