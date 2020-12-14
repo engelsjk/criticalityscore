@@ -378,27 +378,3 @@ func (ghr GitHubRepository) Dependents() int {
 	dependentsCount, _ := strconv.Atoi(string(b))
 	return dependentsCount
 }
-
-// func Paginate() {
-// 	issuesSinceTime := time.Now().Add(-IssueLookbackDays * 24.0 * time.Hour)
-// 	opts := &github.IssueListCommentsOptions{
-// 		Since: issuesSinceTime,
-// 		ListOptions: github.ListOptions{
-// 			PerPage: 100,
-// 		},
-// 	}
-// 	var allComments []*github.IssueComment
-// 	for {
-// 		comments, resp, err := ghr.client.Issues.ListComments(ghr.ctx, ghr.R.GetOwner().GetLogin(), ghr.R.GetName(), 0, opts)
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 		allComments = append(allComments, comments...)
-// 		if resp.NextPage == 0 {
-// 			resp.Body.Close()
-// 			break
-// 		}
-// 		opts.Page = resp.NextPage
-// 		resp.Body.Close()
-// 	}
-// }
