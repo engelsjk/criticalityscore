@@ -239,25 +239,26 @@ func (ghr GitHubRepository) RecentReleases() int {
 		total++
 	}
 
-	if total == 0 {
-		daysSinceCreation := int(time.Since(ghr.R.CreatedAt.Time) / 24.0)
-		if daysSinceCreation == 0 {
-			return 0
-		}
-
-		opts := &github.ListOptions{
-			PerPage: 1,
-		}
-		_, resp2, err := ghr.client.Repositories.ListTags(ghr.ctx, ghr.R.GetOwner().GetLogin(), ghr.R.GetName(), opts)
-		if err != nil {
-			ghr.Error = err
-			return 0
-		}
-		totalTags := totalCount(resp2)
-
-		total = totalTags / daysSinceCreation * ReleaseLookbackDays
+	if total != 0 {
+		return total
 	}
-	return total
+
+	daysSinceCreation := int(time.Since(ghr.R.CreatedAt.Time).Hours() / 24.0)
+	if daysSinceCreation == 0 {
+		return 0
+	}
+
+	opts = &github.ListOptions{
+		PerPage: 1,
+	}
+	_, resp2, err := ghr.client.Repositories.ListTags(ghr.ctx, ghr.R.GetOwner().GetLogin(), ghr.R.GetName(), opts)
+	if err != nil {
+		ghr.Error = err
+		return 0
+	}
+	totalTags := totalCount(resp2)
+
+	return int(math.Round(float64(totalTags) / float64(daysSinceCreation) * ReleaseLookbackDays))
 }
 
 // UpdatedIssues returns the number of all repository issues.

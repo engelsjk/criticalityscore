@@ -138,8 +138,9 @@ func pauseIfGitHubRateLimitExceeded(client *github.Client, ctx context.Context) 
 	defer resp.Body.Close()
 
 	if rateLimits.Core.Remaining < 50 {
-		log.Printf("rate limit exceeded, sleeping for an hour before retry.\n")
-		time.Sleep(60 * time.Minute)
+		waitTime := rateLimits.Core.Reset.Sub(time.Now())
+		log.Printf("rate limit exceeded, sleeping for %0.0f seconds before retry.\n", waitTime.Seconds())
+		time.Sleep(waitTime * time.Second)
 	}
 }
 

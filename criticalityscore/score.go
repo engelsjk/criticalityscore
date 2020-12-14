@@ -27,6 +27,7 @@ import (
 	"reflect"
 	"strconv"
 	"sync"
+	"time"
 )
 
 var (
@@ -49,6 +50,7 @@ type Score struct {
 	CommentFrequency    float64 `json:"comment_frequency"`
 	DependentsCount     int     `json:"dependents_count"`
 	CriticalityScore    float64 `json:"criticality_score"`
+	ScoredOn            string  `json:"scored_on"`
 }
 
 func ParamScore(param interface{}, maxValue, weight float64) float64 {
@@ -162,6 +164,8 @@ func RepositoryStats(ghr GitHubRepository, params []string) (Score, error) {
 		ParamScore(score.CommentFrequency, CommentFrequencyThreshold, CommentFrequencyWeight)+
 		ParamScore(score.DependentsCount, DependentsCountThreshold, DependentsCountWeight)+
 		additionalParamsScore)/totalWeight*100000) / 100000
+
+	score.ScoredOn = time.Now().UTC().Format(time.UnixDate)
 
 	return score, nil
 }
